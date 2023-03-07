@@ -69,3 +69,33 @@ def generate_updated_gtf(gtf):
 
     gtf.to_csv("output_updated.gtf", index = False, sep = "\t", header=False, quoting=csv.QUOTE_NONE, quotechar="")
 
+
+def protein_fasta_with_KEGG(fasta, kegg_ids):
+    fasta_dict = {}
+    
+    with open(fasta) as data:
+        for line in data:
+            if line.startswith('>'):
+                line = line.split(' [')
+                seq_name = re.match(r">(.*)", line[0])
+                try:
+                    tmp = {}
+                    for attribute in line[1:]:
+                        values = attribute.strip().strip(']').split('=')
+                        try:
+                            tmp[values[0]] = values[1]
+                        except IndexError:
+                            print("There was a problem with {} with attribute: {}".format(seq_name.group(1), values))
+                    fasta_dict[seq_name.group(1)] = tmp
+                except AttributeError:
+                    print('{} does not matc the regext for sequence name'.format(line[0]))
+            else:
+                continue
+    
+    protein_fasta_df = pandas.DataFrame.from_dict(fasta_dict, orient = 'index')
+    protein_fasta_df['seq_name'] = protein_fasta_df.index
+    
+    kegg_ids_df = pandas.read_csv(kegg_ids, sep = "\t")
+    fasta_with_ko_ids = pandas.DataFrame.merge(protein_fasta_df, kegg_ids_df, on = "seq_name")
+    
+    fasta_with_ko_ids.to_csv("mapping_with_kegg_ids.tsv", index = False, sep = "\t", header=True, quoting=csv.QUOTE_NONE, quotechar="")
