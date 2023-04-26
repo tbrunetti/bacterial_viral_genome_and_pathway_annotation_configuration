@@ -1,0 +1,7 @@
+KEGG pathway analysis
+
+1.  Download protein fasta for genome being used
+2.  Upload protein fasta to BlastKOALA in KEGG
+
+Gene Ontology Enrichment Analysis
+
